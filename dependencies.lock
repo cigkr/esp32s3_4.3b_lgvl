@@ -1,14 +1,18 @@
 dependencies:
   espressif/esp_lcd_touch:
-    dependencies: []
+    component_hash: 779b4ba2464a3ae85681e4b860caa5fdc35801458c23f3039ee761bae7f442a4
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=4.4.2'
     source:
-      path: C:\Users\cikkr\Desktop\Esp32s3_fw\esp32s3_4.3b_lvgl\components\espressif__esp_lcd_touch
-      type: local
+      registry_url: https://components.espressif.com/
+      type: service
     version: 1.1.2
   espressif/esp_lcd_touch_gt911:
     dependencies: []
     source:
-      path: C:\Users\cikkr\Desktop\Esp32s3_fw\esp32s3_4.3b_lvgl\components\espressif__esp_lcd_touch_gt911
+      path: C:\Users\cikkr\Desktop\esp32s3_4.3b_lgvl-main\components\espressif__esp_lcd_touch_gt911
       type: local
     version: 1.1.1~1
   idf:
@@ -18,7 +22,7 @@ dependencies:
   lvgl/lvgl:
     dependencies: []
     source:
-      path: C:\Users\cikkr\Desktop\Esp32s3_fw\esp32s3_4.3b_lvgl\components\lvgl__lvgl
+      path: C:\Users\cikkr\Desktop\esp32s3_4.3b_lgvl-main\components\lvgl__lvgl
       type: local
     version: 8.4.0
 direct_dependencies:
@@ -26,6 +30,6 @@ direct_dependencies:
 - espressif/esp_lcd_touch_gt911
 - idf
 - lvgl/lvgl
-manifest_hash: d5d266152de678f38563fb78535c96ea22d9ead88642e70bb4e988de7ac24ddd
+manifest_hash: b1edac5f6a9decf02ccdfe36806f42d5c69bd5a6723d79c351d3bc54c54ff2cc
 target: esp32s3
 version: 2.0.0

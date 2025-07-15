@@ -1,0 +1,2 @@
+source C:/Users/cikkr/Desktop/esp32s3_4.3b_lgvl-main/build/bootloader/gdbinit/symbols
+source C:/Users/cikkr/Desktop/esp32s3_4.3b_lgvl-main/build/bootloader/gdbinit/connect
