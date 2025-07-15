@@ -1,0 +1,196 @@
+menu "Example Configuration"
+    menu "SoftAP Configuration"
+        comment "SoftAP Configuration"
+
+        config ESP_WIFI_AP_SSID
+            string "WiFi AP SSID"
+            default "esp32"
+            help
+                SSID (network name) of the AP for the example to connect to.
+
+        config ESP_WIFI_AP_PASSWORD
+            string "WiFi AP Password"
+            default "cigkr0328"
+            help
+                WiFi password of the AP for the example to use.
+
+        config ESP_WIFI_AP_CHANNEL
+            int "WiFi AP Channel"
+            range 1 14
+            default 1
+            help
+                WiFi channel (network channel) of the AP for the example to use.
+
+        config ESP_MAX_STA_CONN_AP
+            int "Maximal STA connections"
+            default 4
+            help
+                Max number of the STA connects to AP.
+    endmenu
+
+    menu "STA Configuration"
+        comment "STA Configuration"
+
+        config ESP_WIFI_REMOTE_AP_SSID
+            string "WiFi Remote AP SSID"
+            default "otherapssid"
+            help
+                SSID (network name) for the example's sta to connect to.
+
+        config ESP_WIFI_REMOTE_AP_PASSWORD
+            string "WiFi Remote AP Password"
+            default "otherappassword"
+            help
+                WiFi password for the example to use.
+
+        config ESP_MAXIMUM_STA_RETRY
+            int "Maximum retry"
+            default 5
+            help
+                Set the maximum retry value to prevent the station from continuously
+                attempting to reconnect to the Access Point (AP) when the AP doesn't exist.
+
+        choice ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD
+            prompt "WiFi Scan auth mode threshold"
+            default ESP_WIFI_AUTH_WPA2_PSK
+            help
+                The weakest authmode to accept in the scan mode.
+                This value defaults to ESP_WIFI_AUTH_WPA2_PSK in case password is present
+                and ESP_WIFI_AUTH_OPEN is used. Please select ESP_WIFI_AUTH_WEP / ESP_WIFI_AUTH_WPA_PSK
+                in case AP is operating in WEP / WPA mode.
+
+            config ESP_WIFI_AUTH_OPEN
+                bool "OPEN"
+            config ESP_WIFI_AUTH_WEP
+                bool "WEP"
+            config ESP_WIFI_AUTH_WPA_PSK
+                bool "WPA PSK"
+            config ESP_WIFI_AUTH_WPA2_PSK
+                bool "WPA2 PSK"
+            config ESP_WIFI_AUTH_WPA_WPA2_PSK
+                bool "WPA/WPA2 PSK"
+            config ESP_WIFI_AUTH_WPA3_PSK
+                bool "WPA3 PSK"
+            config ESP_WIFI_AUTH_WPA2_WPA3_PSK
+                bool "WPA2/WPA3 PSK"
+            config ESP_WIFI_AUTH_WAPI_PSK
+                bool "WAPI PSK"
+        endchoice
+
+    endmenu
+    
+    menu "Display"
+        config EXAMPLE_LCD_RGB_BOUNCE_BUFFER_HEIGHT
+            int "RGB Bounce buffer height"
+            default 10
+            help
+                Height of bounce buffer. The width of the buffer is the same as that of the LCD.
+
+        config EXAMPLE_LVGL_PORT_TASK_MAX_DELAY_MS
+            int "LVGL timer task maximum delay (ms)"
+            default 500
+            range 2 2000  # Example range, adjust as needed
+            help
+            The maximum delay of the LVGL timer task, in milliseconds.
+
+        config EXAMPLE_LVGL_PORT_TASK_MIN_DELAY_MS
+            int "LVGL timer task minimum delay (ms)"
+            default 10
+            range 1 100  # Example range, adjust as needed
+            help
+            The minimum delay of the LVGL timer task, in milliseconds.
+
+        config EXAMPLE_LVGL_PORT_TASK_PRIORITY
+            int "LVGL task priority"
+            default 2
+            help
+                The Board Support Package will create a task that will periodically handle LVGL operation in lv_timer_handler().
+
+        config EXAMPLE_LVGL_PORT_TASK_STACK_SIZE_KB
+            int "LVGL task stack size (KB)"
+            default 6
+            help
+                Size(KB) of LVGL task stack.
+
+        config EXAMPLE_LVGL_PORT_TASK_CORE
+            int "LVGL timer task core"
+            default -1
+            range -1 1
+            help
+            The core of the LVGL timer task.
+            Set to -1 to not specify the core.
+            Set to 1 only if the SoCs support dual-core, otherwise set to -1 or 0.
+
+        config EXAMPLE_LVGL_PORT_TICK
+            int "LVGL tick period"
+            default 2
+            range 1 100
+            help
+                Period of LVGL tick timer.
+
+        config EXAMPLE_LVGL_PORT_AVOID_TEAR_ENABLE
+            bool "Avoid tearing effect"
+            default "n"
+            help
+                Avoid tearing effect through LVGL buffer mode and double frame buffers of RGB LCD. This feature is only available for RGB LCD.
+
+        choice
+            depends on EXAMPLE_LVGL_PORT_AVOID_TEAR_ENABLE
+            prompt "Select Avoid Tearing Mode"
+            default EXAMPLE_LVGL_PORT_AVOID_TEAR_MODE_3
+            config EXAMPLE_LVGL_PORT_AVOID_TEAR_MODE_1
+                bool "Mode1: LCD double-buffer & LVGL full-refresh"
+            config EXAMPLE_LVGL_PORT_AVOID_TEAR_MODE_2
+                bool "Mode2: LCD triple-buffer & LVGL full-refresh"
+            config EXAMPLE_LVGL_PORT_AVOID_TEAR_MODE_3
+                bool "Mode3: LCD double-buffer & LVGL direct-mode"
+            help
+                The current tearing prevention mode supports both full refresh mode and direct mode. Tearing prevention mode may consume more PSRAM space
+        endchoice
+
+        config EXAMPLE_LVGL_PORT_AVOID_TEAR_MODE
+            depends on EXAMPLE_LVGL_PORT_AVOID_TEAR_ENABLE
+            int
+            default 1 if EXAMPLE_LVGL_PORT_AVOID_TEAR_MODE_1
+            default 2 if EXAMPLE_LVGL_PORT_AVOID_TEAR_MODE_2
+            default 3 if EXAMPLE_LVGL_PORT_AVOID_TEAR_MODE_3
+
+        choice
+            depends on EXAMPLE_LVGL_PORT_AVOID_TEAR_ENABLE
+            prompt "Select rotation"
+            default EXAMPLE_LVGL_PORT_ROTATION_0
+            config EXAMPLE_LVGL_PORT_ROTATION_0
+                bool "Rotation 0"
+            config EXAMPLE_LVGL_PORT_ROTATION_90
+                bool "Rotation 90"
+            config EXAMPLE_LVGL_PORT_ROTATION_180
+                bool "Rotation 180"
+            config EXAMPLE_LVGL_PORT_ROTATION_270
+                bool "Rotation 270"
+        endchoice
+
+        config EXAMPLE_LVGL_PORT_ROTATION_DEGREE
+            int
+            default 0 if EXAMPLE_LVGL_PORT_ROTATION_0
+            default 90 if EXAMPLE_LVGL_PORT_ROTATION_90
+            default 180 if EXAMPLE_LVGL_PORT_ROTATION_180
+            default 270 if EXAMPLE_LVGL_PORT_ROTATION_270
+
+        choice
+            depends on !EXAMPLE_LVGL_PORT_AVOID_TEAR_ENABLE
+            prompt "Select LVGL buffer memory capability"
+            default EXAMPLE_LVGL_PORT_BUF_INTERNAL
+            config EXAMPLE_LVGL_PORT_BUF_PSRAM
+                bool "PSRAM memory"
+            config EXAMPLE_LVGL_PORT_BUF_INTERNAL
+                bool "Internal memory"
+        endchoice
+
+        config EXAMPLE_LVGL_PORT_BUF_HEIGHT
+            depends on !EXAMPLE_LVGL_PORT_AVOID_TEAR_ENABLE
+            int "LVGL buffer height"
+            default 100
+            help
+                Height of LVGL buffer. The width of the buffer is the same as that of the LCD.
+    endmenu
+endmenu
