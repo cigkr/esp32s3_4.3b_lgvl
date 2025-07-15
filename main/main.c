@@ -38,7 +38,7 @@
 
 void func_countUp(lv_event_t *e)
 {
-    // Your code here
+    // Your code here 러하러ㅣㅓㅣㅇ라ㅓ히ㅏㅣ렇리ㅏㄹ하ㅣㅓ라ㅣ;ㅓ히ㅏㅁㄴㅇ리;ㅎ리;ㅓㅎㄹ;ㅐ
     lv_label_set_text(ui_LblScreen, "button1 pressed");
 }
 
