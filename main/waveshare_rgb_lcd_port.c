@@ -115,9 +115,7 @@ esp_err_t waveshare_esp32_s3_rgb_lcd_init()
             EXAMPLE_LCD_IO_RGB_DATA0,
             EXAMPLE_LCD_IO_RGB_DATA1,
             EXAMPLE_LCD_IO_RGB_DATA2,
-            EXAMPLE_LCD_IO_RGB_DATA3,
-            EXAMPLE_LCD_IO_RGB_DATA4,
-            EXAMPLE_LCD_IO_RGB_DATA5,
+            
             EXAMPLE_LCD_IO_RGB_DATA6,
             EXAMPLE_LCD_IO_RGB_DATA7,
             EXAMPLE_LCD_IO_RGB_DATA8,

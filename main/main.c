@@ -1,4 +1,4 @@
-/*
+*
  * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
@@ -235,9 +235,21 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
 }
 
 /* Initialize soft AP */
-esp_netif_t *wifi_init_softap(void)
+void wifi_init_softap(void)
 {
-    esp_netif_t *esp_netif_ap = esp_netif_create_default_wifi_ap();
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    esp_netif_create_default_wifi_ap();
+    
+    wifi_init_config_t cfg= WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+    /* Register Event handler */
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
+                    ESP_EVENT_ANY_ID,
+                    &wifi_event_handler,
+                    NULL,
+                    NULL));
 
     wifi_config_t wifi_ap_config = {
         .ap = {
@@ -256,13 +268,12 @@ esp_netif_t *wifi_init_softap(void)
     if (strlen(EXAMPLE_ESP_WIFI_AP_PASSWD) == 0) {
         wifi_ap_config.ap.authmode = WIFI_AUTH_OPEN;
     }
-
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_ap_config));
-
+    ESP_ERROR_CHECK(esp_wifi_start());
     ESP_LOGI(TAG_AP, "wifi_init_softap finished. SSID:%s password:%s channel:%d",
              EXAMPLE_ESP_WIFI_AP_SSID, EXAMPLE_ESP_WIFI_AP_PASSWD, EXAMPLE_ESP_WIFI_CHANNEL);
 
-    return esp_netif_ap;
 }
 
 /* Initialize wifi station */
@@ -306,90 +317,13 @@ void softap_set_dns_addr(esp_netif_t *esp_netif_ap,esp_netif_t *esp_netif_sta)
 
 
 
-void softap_sta(void){
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-
-    //Initialize NVS
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-
-    /* Initialize event group */
-    s_wifi_event_group = xEventGroupCreate();
-
-    /* Register Event handler */
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
-                    ESP_EVENT_ANY_ID,
-                    &wifi_event_handler,
-                    NULL,
-                    NULL));
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT,
-                    IP_EVENT_STA_GOT_IP,
-                    &wifi_event_handler,
-                    NULL,
-                    NULL));
-
-    /*Initialize WiFi */
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
-
-    /* Initialize AP */
-    ESP_LOGI(TAG_AP, "ESP_WIFI_MODE_AP");
-    esp_netif_t *esp_netif_ap = wifi_init_softap();
-
-    /* Initialize STA */
-    ESP_LOGI(TAG_STA, "ESP_WIFI_MODE_STA");
-    esp_netif_t *esp_netif_sta = wifi_init_sta();
-
-    /* Start WiFi */
-    ESP_ERROR_CHECK(esp_wifi_start() );
-
-    /*
-     * Wait until either the connection is established (WIFI_CONNECTED_BIT) or
-     * connection failed for the maximum number of re-tries (WIFI_FAIL_BIT).
-     * The bits are set by event_handler() (see above)
-     */
-    EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group,
-                                           WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
-                                           pdFALSE,
-                                           pdFALSE,
-                                           portMAX_DELAY);
-
-    /* xEventGroupWaitBits() returns the bits before the call returned,
-     * hence we can test which event actually happened. */
-    if (bits & WIFI_CONNECTED_BIT) {
-        ESP_LOGI(TAG_STA, "connected to ap SSID:%s password:%s",
-                 EXAMPLE_ESP_WIFI_STA_SSID, EXAMPLE_ESP_WIFI_STA_PASSWD);
-        softap_set_dns_addr(esp_netif_ap,esp_netif_sta);
-    } else if (bits & WIFI_FAIL_BIT) {
-        ESP_LOGI(TAG_STA, "Failed to connect to SSID:%s, password:%s",
-                 EXAMPLE_ESP_WIFI_STA_SSID, EXAMPLE_ESP_WIFI_STA_PASSWD);
-    } else {
-        ESP_LOGE(TAG_STA, "UNEXPECTED EVENT");
-        return;
-    }
-
-    /* Set sta as the default interface */
-    esp_netif_set_default_netif(esp_netif_sta);
-
-    /* Enable napt on the AP netif */
-    if (esp_netif_napt_enable(esp_netif_ap) != ESP_OK) {
-        ESP_LOGE(TAG_STA, "NAPT not enabled on the netif: %p", esp_netif_ap);
-    }
-}
 
 void app_main()
 {
     waveshare_esp32_s3_rgb_lcd_init(); // Initialize the Waveshare ESP32-S3 RGB LCD 
     // wavesahre_rgb_lcd_bl_on();  //Turn on the screen backlight 
     // wavesahre_rgb_lcd_bl_off(); //Turn off the screen backlight 
-  
+        
     ESP_LOGI(TAG, "Display LVGL demos");
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (lvgl_port_lock(-1)) {
@@ -403,8 +337,29 @@ void app_main()
 #endif
         // example_lvgl_demo_ui();
         // Release the mutex
+        ui_init();
         lvgl_port_unlock();
     }
-    ui_init();
-    softap_sta();
+   
+    static httpd_handle_t server = NULL;
+
+    //Initialize NVS
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+    ESP_LOGI(TAG, "ESP_WIFI_MODE_AP");
+    wifi_init_softap();
+    
+    ESP_ERROR_CHECK(esp_netif_init());
+    
+    /* Register Event handler */
+    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT,
+                    IP_EVENT_AP_STAIPASSIGNED,
+                    &connect_handler,
+                    &server));
+  
+    
 }
